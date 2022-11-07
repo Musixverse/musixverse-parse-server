@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { cleanEnv, num, str } from 'envalid';
+import { cleanEnv, num, str, bool } from 'envalid';
 
 dotenv.config();
 
@@ -48,4 +48,9 @@ export default cleanEnv(process.env, {
     desc: 'Rate limit requests per window for anonymous users',
     default: 20,
   }),
+  APP_NAME: str({
+    desc: 'App name',
+    devDefault: 'Musixverse',
+  }),
+  ALLOW_INSECURE_HTTP: bool({ default: false }),
 });
