@@ -4,7 +4,7 @@
     "module": "commonjs",
     "outDir": "build",
     "baseUrl": ".",
-    "rootDir": "",
+    "rootDir": "src",
     "declaration": true,
     "declarationDir": "build",
     "sourceMap": true,
@@ -13,5 +13,5 @@
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true
   },
-  "include": ["api", "index.ts"]
+  "include": ["src"]
 }
