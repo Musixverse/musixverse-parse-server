@@ -18,7 +18,7 @@ Moralis.start({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Whitelist
+// Whitelis
 app.use(cors());
 
 app.use(
