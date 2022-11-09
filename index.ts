@@ -3,13 +3,13 @@
 import express from 'express';
 import cors from 'cors';
 import config from './api/config';
+// @ts-ignore
 // import { parseDashboard } from './api/parseDashboard';
-// import { parseServer } from './api/parseServer';
+import { parseServer } from './api/parseServer';
 // @ts-ignore
 // import ParseServer from 'parse-server';
 import http from 'http';
-// @ts-ignore
-// import { streamsSync } from '@moralisweb3/parse-server';
+import { streamsSync } from '@moralisweb3/parse-server';
 
 export const app = express();
 
@@ -32,13 +32,12 @@ app.get('/', (req, res) => {
   );
 });
 
-// @ts-ignore
-// app.use(
-//   streamsSync(parseServer, {
-//     apiKey: config.MORALIS_API_KEY,
-//     webhookUrl: '/streams',
-//   }),
-// );
+app.use(
+  streamsSync(parseServer, {
+    apiKey: config.MORALIS_API_KEY,
+    webhookUrl: '/streams',
+  }),
+);
 // @ts-ignore
 // app.use(`/server`, parseServer.app);
 // app.use('/dashboard', parseDashboard);
