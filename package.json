@@ -2,7 +2,7 @@
   "name": "demo-parse-server-migration",
   "version": "1.1.0",
   "description": "Express server on Vercel",
-  "main": "server.js",
+  "main": "dist/index.js",
   "private": true,
   "dependencies": {
     "@codemirror/language": "^0.20.0",
