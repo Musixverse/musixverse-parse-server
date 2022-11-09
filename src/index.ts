@@ -31,7 +31,7 @@ app.use(
   }),
 );
 
-app.use(`/server`, parseServer);
+app.use(`/server`, parseServer.app);
 app.use('/dashboard', parseDashboard);
 
 const httpServer = http.createServer(app);
