@@ -1,9 +1,9 @@
 import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
-import config from './config';
-import { parseDashboard } from './parseDashboard';
-import { parseServer } from './parseServer';
+import config from './src/config';
+import { parseDashboard } from './src/parseDashboard';
+import { parseServer } from './src/parseServer';
 // @ts-ignore
 import ParseServer from 'parse-server';
 import http from 'http';

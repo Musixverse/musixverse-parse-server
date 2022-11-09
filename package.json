@@ -1,7 +1,8 @@
 {
   "name": "demo-parse-server-migration",
   "version": "1.1.0",
-  "main": "dist/index.js",
+  "description": "Express server on Vercel",
+  "main": "server.js",
   "private": true,
   "dependencies": {
     "@codemirror/language": "^0.20.0",
@@ -36,6 +37,9 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "start": "node build/index.js",
+    "start-server": "node server.ts",
+    "dev-server": "NODE_ENV=development nodemon server.ts",
+    "prod-server": "NODE_ENV=production nodemon server.ts",
     "build": "tsc",
     "lint": "eslint --ext .js,.ts .",
     "format": "prettier --write 'src/**/*.{js,ts}'",
