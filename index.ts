@@ -1,13 +1,24 @@
+import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
+import config from './api/config';
+import { parseDashboard } from './api/parseDashboard';
+import { parseServer } from './api/parseServer';
+// @ts-ignore
+import ParseServer from 'parse-server';
 import http from 'http';
+import { streamsSync } from '@moralisweb3/parse-server';
 
 export const app = express();
+
+Moralis.start({
+  apiKey: config.MORALIS_API_KEY,
+});
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Whitelis
+// Whitelist
 app.use(cors());
 
 app.get('/', (req, res) => {
@@ -18,10 +29,23 @@ app.get('/', (req, res) => {
   );
 });
 
-const PORT = process.env.PORT || 1337;
+app.use(
+  streamsSync(parseServer, {
+    apiKey: config.MORALIS_API_KEY,
+    webhookUrl: '/streams',
+  }),
+);
+
+app.use(`/server`, parseServer.app);
+app.use('/dashboard', parseDashboard);
+
+const PORT = config.PORT || 1337;
 
 const httpServer = http.createServer(app);
 httpServer.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Moralis Server is running on port ${PORT}.`);
 });
+
+// This will enable the Live Query real-time server
+ParseServer.createLiveQueryServer(httpServer);
