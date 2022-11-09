@@ -37,9 +37,9 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "start": "node build/index.js",
-    "start-server": "node server.ts",
-    "dev-server": "NODE_ENV=development nodemon server.ts",
-    "prod-server": "NODE_ENV=production nodemon server.ts",
+    "start-server": "node src/index.ts",
+    "dev-server": "NODE_ENV=development nodemon src/index.ts",
+    "prod-server": "NODE_ENV=production nodemon src/index.ts",
     "build": "tsc",
     "lint": "eslint --ext .js,.ts .",
     "format": "prettier --write 'src/**/*.{js,ts}'",
