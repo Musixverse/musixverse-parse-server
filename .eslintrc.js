@@ -4,4 +4,9 @@ module.exports = {
   env: {
     browser: true,
   },
+  rules: {
+    // Disables the rule. You can just remove it,
+    // if it is not enabled by a parent config.
+    'object-shorthand': 0,
+  },
 };

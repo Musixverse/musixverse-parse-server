@@ -1,21 +1,16 @@
+import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
 import config from './config';
-import http from 'http';
-// @ts-ignore
-import Moralis from 'moralis';
-// @ts-ignore
-// import { parseDashboard } from './parseDashboard';
-// @ts-ignore
+import { parseDashboard } from './parseDashboard';
 import { parseServer } from './parseServer';
 // @ts-ignore
-// import ParseServer from 'parse-server';
-// @ts-ignore
-// import { streamsSync } from '@moralisweb3/parse-server';
+import ParseServer from 'parse-server';
+import http from 'http';
+import { streamsSync } from '@moralisweb3/parse-server';
 
 export const app = express();
 
-// @ts-ignore
 Moralis.start({
   apiKey: config.MORALIS_API_KEY,
 });
@@ -36,17 +31,15 @@ app.get('/', (req, res) => {
     );
 });
 
-// @ts-ignore
-// app.use(
-//   streamsSync(parseServer, {
-//     apiKey: config.MORALIS_API_KEY,
-//     webhookUrl: '/streams',
-//   }),
-// );
-// @ts-ignore
+app.use(
+  streamsSync(parseServer, {
+    apiKey: config.MORALIS_API_KEY,
+    webhookUrl: '/streams',
+  }),
+);
+
 app.use(`/server`, parseServer.app);
-// @ts-ignore
-// app.use('/dashboard', parseDashboard);
+app.use('/dashboard', parseDashboard);
 
 const httpServer = http.createServer(app);
 httpServer.listen(config.PORT, () => {
@@ -54,4 +47,4 @@ httpServer.listen(config.PORT, () => {
   console.log(`Moralis Server is running on port ${config.PORT}.`);
 });
 // This will enable the Live Query real-time server
-// ParseServer.createLiveQueryServer(httpServer);
+ParseServer.createLiveQueryServer(httpServer);

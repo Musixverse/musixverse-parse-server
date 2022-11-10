@@ -25,3 +25,6 @@ More commands
 
 To terminate the environment and all of the resources that it contains
 `eb terminate`
+
+
+DON'T CREATE A TABLE DIRECTLY IN THE MONGODB DATABSE. TABLES SHOULD ONLY BE CREATED VIA THE PARSE DASHBOARD OR VIA CLOUD CODE.
