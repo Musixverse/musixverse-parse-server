@@ -1,19 +1,20 @@
-import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
 import config from './config';
-import { parseDashboard } from './parseDashboard';
-import { parseServer } from './parseServer';
-// @ts-ignore
-// import ParseServer from 'parse-server';
 import http from 'http';
-import { streamsSync } from '@moralisweb3/parse-server';
+// @ts-ignore
+// import Moralis from 'moralis';
+// import { parseDashboard } from './parseDashboard';
+// import { parseServer } from './parseServer';
+// import ParseServer from 'parse-server';
+// import { streamsSync } from '@moralisweb3/parse-server';
 
 export const app = express();
 
-Moralis.start({
-  apiKey: config.MORALIS_API_KEY,
-});
+// @ts-ignore
+// Moralis.start({
+//   apiKey: config.MORALIS_API_KEY,
+// });
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -31,15 +32,15 @@ app.get('/', (req, res) => {
     );
 });
 
-app.use(
-  streamsSync(parseServer, {
-    apiKey: config.MORALIS_API_KEY,
-    webhookUrl: '/streams',
-  }),
-);
-
-app.use(`/server`, parseServer.app);
-app.use('/dashboard', parseDashboard);
+// @ts-ignore
+// app.use(
+//   streamsSync(parseServer, {
+//     apiKey: config.MORALIS_API_KEY,
+//     webhookUrl: '/streams',
+//   }),
+// );
+// app.use(`/server`, parseServer.app);
+// app.use('/dashboard', parseDashboard);
 
 const httpServer = http.createServer(app);
 httpServer.listen(config.PORT, () => {
