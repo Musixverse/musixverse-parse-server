@@ -5,7 +5,7 @@ import config from './config';
 import { parseDashboard } from './parseDashboard';
 import { parseServer } from './parseServer';
 // @ts-ignore
-import ParseServer from 'parse-server';
+// import ParseServer from 'parse-server';
 import http from 'http';
 import { streamsSync } from '@moralisweb3/parse-server';
 
@@ -22,11 +22,13 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
-  res.send(
-    '<html><head><title>Musixverse Parse Server</title></head><body style="font-family: Poppins !important; background-color: black; padding: 0; margin:0;">' +
-      '<div style="display: flex; flex:1; height: 100% ; justify-content: center; align-items: center; min-height: 100vh !important; font-size: 28px !important; color: #5AB510 !important;">' +
-      'Musixverse Parse Server is running...</div></body></html>',
-  );
+  res
+    .status(200)
+    .send(
+      '<html><head><title>Musixverse Parse Server</title></head><body style="font-family: Poppins !important; background-color: black; padding: 0; margin:0;">' +
+        '<div style="display: flex; flex:1; height: 100% ; justify-content: center; align-items: center; min-height: 100vh !important; font-size: 28px !important; color: #5AB510 !important;">' +
+        'Musixverse Parse Server is running...</div></body></html>',
+    );
 });
 
 app.use(
@@ -45,4 +47,4 @@ httpServer.listen(config.PORT, () => {
   console.log(`Moralis Server is running on port ${config.PORT}.`);
 });
 // This will enable the Live Query real-time server
-ParseServer.createLiveQueryServer(httpServer);
+// ParseServer.createLiveQueryServer(httpServer);

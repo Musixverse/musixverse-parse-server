@@ -38,3 +38,9 @@ yarn-error.log*
 /public/robots.txt
 /public/sitemap.xml
 /public/sitemap-0.xml
+
+# Elastic Beanstalk Files
+.elasticbeanstalk
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
