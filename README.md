@@ -28,3 +28,5 @@ To terminate the environment and all of the resources that it contains
 
 
 DON'T CREATE A TABLE DIRECTLY IN THE MONGODB DATABSE. TABLES SHOULD ONLY BE CREATED VIA THE PARSE DASHBOARD OR VIA CLOUD CODE.
+
+Run `node Moralis/migrateDBTable.ts` to migrate the database table specified in the file

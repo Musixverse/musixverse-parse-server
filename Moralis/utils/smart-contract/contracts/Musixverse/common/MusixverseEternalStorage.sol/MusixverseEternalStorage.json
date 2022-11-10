@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MusixverseEternalStorage",
+  "sourceName": "contracts/Musixverse/common/MusixverseEternalStorage.sol",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122091c83d0224463d07773f4c0bc572b8ad9e7a6a32874f3fc74f3919137d6d4f4764736f6c63430008040033",
+  "deployedBytecode": "0x6080604052600080fdfea264697066735822122091c83d0224463d07773f4c0bc572b8ad9e7a6a32874f3fc74f3919137d6d4f4764736f6c63430008040033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
