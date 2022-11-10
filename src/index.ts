@@ -3,7 +3,8 @@ import cors from 'cors';
 import config from './config';
 import http from 'http';
 // @ts-ignore
-// import Moralis from 'moralis';
+import Moralis from 'moralis';
+// @ts-ignore
 // import { parseDashboard } from './parseDashboard';
 // import { parseServer } from './parseServer';
 // import ParseServer from 'parse-server';
@@ -12,9 +13,9 @@ import http from 'http';
 export const app = express();
 
 // @ts-ignore
-// Moralis.start({
-//   apiKey: config.MORALIS_API_KEY,
-// });
+Moralis.start({
+  apiKey: config.MORALIS_API_KEY,
+});
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
