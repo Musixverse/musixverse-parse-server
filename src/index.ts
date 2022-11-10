@@ -6,8 +6,11 @@ import http from 'http';
 import Moralis from 'moralis';
 // @ts-ignore
 // import { parseDashboard } from './parseDashboard';
-// import { parseServer } from './parseServer';
+// @ts-ignore
+import { parseServer } from './parseServer';
+// @ts-ignore
 // import ParseServer from 'parse-server';
+// @ts-ignore
 // import { streamsSync } from '@moralisweb3/parse-server';
 
 export const app = express();
@@ -40,7 +43,9 @@ app.get('/', (req, res) => {
 //     webhookUrl: '/streams',
 //   }),
 // );
-// app.use(`/server`, parseServer.app);
+// @ts-ignore
+app.use(`/server`, parseServer.app);
+// @ts-ignore
 // app.use('/dashboard', parseDashboard);
 
 const httpServer = http.createServer(app);
