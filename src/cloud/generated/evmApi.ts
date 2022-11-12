@@ -166,7 +166,6 @@ Parse.Cloud.define("getNFTTransfers", async ({params, user, ip}: any) => {
 Parse.Cloud.define("getWalletNFTCollections", async ({params, user, ip}: any) => {
   try {
     await beforeApiRequest(user, ip, 'getWalletNFTCollections');
-    //@ts-ignore
     const result = await Moralis.EvmApi.account.getWalletNFTCollections(params);
     return result?.raw;
   } catch (error) {
@@ -327,7 +326,6 @@ Parse.Cloud.define("reSyncMetadata", async ({params, user, ip}: any) => {
 Parse.Cloud.define("syncNFTContract", async ({params, user, ip}: any) => {
   try {
     await beforeApiRequest(user, ip, 'syncNFTContract');
-    //@ts-ignore
     const result = await Moralis.EvmApi.contract.syncNFTContract(params);
     return result?.raw;
   } catch (error) {
@@ -418,7 +416,6 @@ Parse.Cloud.define("uploadFolder", async ({params, user, ip}: any) => {
 Parse.Cloud.define("web3ApiVersion", async ({params, user, ip}: any) => {
   try {
     await beforeApiRequest(user, ip, 'web3ApiVersion');
-    //@ts-ignore
     const result = await Moralis.EvmApi.info.web3ApiVersion(params);
     return result?.raw;
   } catch (error) {
@@ -429,7 +426,6 @@ Parse.Cloud.define("web3ApiVersion", async ({params, user, ip}: any) => {
 Parse.Cloud.define("endpointWeights", async ({params, user, ip}: any) => {
   try {
     await beforeApiRequest(user, ip, 'endpointWeights');
-    //@ts-ignore
     const result = await Moralis.EvmApi.info.endpointWeights(params);
     return result?.raw;
   } catch (error) {

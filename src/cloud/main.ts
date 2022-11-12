@@ -6,6 +6,8 @@ import './generated/evmApi';
 import './generated/solApi';
 import { requestMessage } from '../auth/authService';
 const { logger } = require('parse-server');
+const sendgridMail = require('@sendgrid/mail');
+sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 let NODE_ENV;
 let CHAIN_ID: string;
@@ -88,6 +90,49 @@ Parse.Cloud.define('checkEmailExists', async (request: any) => {
         return false;
     }
     return null;
+});
+
+// TODO: Implement custom email verified successfully page
+Parse.Cloud.beforeSave('_User', async (request: any) => {
+    const _currentEmail = request.user ? request.user.get('email') : '';
+    const _newEmail = request.object ? request.object.get('email') : '';
+
+    if (_currentEmail !== _newEmail) {
+        // eslint-disable-next-line etc/no-commented-out-code
+        // request.object.set('emailVerified', false);
+    }
+
+    logger.info(`\n\nrequest.user before saving object: ${JSON.stringify(_currentEmail)}`);
+    logger.info(`\n\nrequest.object before saving object: ${JSON.stringify(_newEmail)}`);
+    if (_newEmail) {
+        // eslint-disable-next-line etc/no-commented-out-code
+        // const query = new Parse.Query('InvitedUsers', { useMasterKey: true });
+        // const pipeline = [
+        //     {
+        //         match: {
+        //             invitedUserEmail: request.object.get('email'),
+        //             joined: false,
+        //         },
+        //     },
+        //     {
+        //         lookup: {
+        //             from: '_User',
+        //             localField: 'userId',
+        //             foreignField: '_id',
+        //             as: 'userInfo',
+        //         },
+        //     },
+        //     {
+        //         project: {
+        //             _id: 1,
+        //             invitedUserEmail: 1,
+        //             joined: 1,
+        //             inviterEmail: '$userInfo.email',
+        //         },
+        //     },
+        // ];
+        // const results = await query.aggregate(pipeline);
+    }
 });
 
 /**************************************************************************/
@@ -3049,7 +3094,7 @@ Parse.Cloud.define('fetchUserPreferences', async (request: any) => {
 
 Parse.Cloud.define('updateUserInfo', async (request: any) => {
     const query = new Parse.Query('UserInfo');
-    query.equalTo('user', request.user);
+    query.equalTo('userId', request.user.id);
     const queryResult = await query.first();
 
     if (queryResult) {
@@ -4235,15 +4280,22 @@ Parse.Cloud.define('getUpdatedCollaboratorList', async (request: any) => {
     return null;
 });
 
+const sendEmail = async (req: any) => {
+    const msg = {
+        from: 'Musixverse <no-reply@musixverse.com>',
+        to: req.to,
+        templateId: req.templateId,
+        dynamicTemplateData: req.dynamicTemplateData,
+    };
+    await sendgridMail.send(msg);
+};
+
 Parse.Cloud.define('sendInviteEmail', async (request: any) => {
     if (request.user) {
-        Parse.Cloud.sendEmail({
+        await sendEmail({
             to: request.params.email,
             templateId: 'd-ec15f453693d446789d62df7ff9d04be',
-            name: 'Musixverse',
-            fromname: 'Musixverse',
-            from_name: 'Musixverse',
-            dynamic_template_data: {
+            dynamicTemplateData: {
                 name: request.user.attributes.name,
                 profileLink: `${MUSIXVERSE_ROOT_URL}/profile/${request.user.attributes.username}`,
                 platformLink: MUSIXVERSE_ROOT_URL,
@@ -4347,16 +4399,10 @@ const sendNftCollaboratorInvitationEmail = async (
     collaboratorToInviteName: any,
     collaboratorToInviteId: any,
 ) => {
-    await Parse.Cloud.sendEmail({
+    await sendEmail({
         to: collaboratorEmail,
         templateId: 'd-46b0b98c7be547469bbe8d0ec3640470',
-        from: {
-            name: 'Musixverse',
-        },
-        name: 'Musixverse',
-        fromname: 'Musixverse',
-        from_name: 'Musixverse',
-        dynamic_template_data: {
+        dynamicTemplateData: {
             trackName: trackName,
             inviterName: inviterName,
             name: collaboratorToInviteName,
@@ -4479,13 +4525,10 @@ Parse.Cloud.afterSave('_User', async (request: any) => {
             const invitedUserObject = await invitedUserQuery.first({ useMasterKey: true });
 
             // eslint-disable-next-line no-await-in-loop
-            await Parse.Cloud.sendEmail({
+            await sendEmail({
                 to: results[i].inviterEmail[0],
                 templateId: 'd-820212f833f34b32a40c52fdb68d7c30',
-                name: 'Musixverse',
-                fromname: 'Musixverse',
-                from_name: 'Musixverse',
-                dynamic_template_data: {
+                dynamicTemplateData: {
                     name: request.object.get('name'),
                     username: request.object.get('username'),
                     profileLink: `${MUSIXVERSE_ROOT_URL}/profile/${request.object.get('username')}`,
@@ -4511,13 +4554,10 @@ Parse.Cloud.afterSave('InvitedArtworkArtist', async (request: any) => {
     ];
     const result = await query.aggregate(pipeline);
 
-    await Parse.Cloud.sendEmail({
+    await sendEmail({
         to: request.object.get('invitedArtistEmail'),
         templateId: 'd-28fc27657b2b442fbf7ab20a467f8368',
-        name: 'Musixverse',
-        fromname: 'Musixverse',
-        from_name: 'Musixverse',
-        dynamic_template_data: {
+        dynamicTemplateData: {
             inviterName: result[0].name,
             inviterProfileLink: `${MUSIXVERSE_ROOT_URL}/profile/${result[0].username}`,
             name: request.object.get('invitedArtistName'),
@@ -4738,16 +4778,10 @@ const sendBandInvitationEmail = async (
     memberToInviteRole: any,
     memberToInviteId: any,
 ) => {
-    await Parse.Cloud.sendEmail({
+    await sendEmail({
         to: memberEmail,
         templateId: 'd-72afbbc0131d4f7dbba019937dc3cc30',
-        from: {
-            name: 'Musixverse',
-        },
-        name: 'Musixverse',
-        fromname: 'Musixverse',
-        from_name: 'Musixverse',
-        dynamic_template_data: {
+        dynamicTemplateData: {
             bandName: bandName,
             bandUsername: bandUsername,
             inviterName: inviterName,
@@ -4854,16 +4888,10 @@ const sendBandVerifiedEmail = async (bandId: any) => {
         const _bandMember = result[0].bandMembersInfo[idx];
 
         // eslint-disable-next-line no-await-in-loop
-        await Parse.Cloud.sendEmail({
+        await sendEmail({
             to: _bandMember.email,
             templateId: 'd-bd6ea908943845248724fe97261b0f37',
-            from: {
-                name: 'Musixverse',
-            },
-            name: 'Musixverse',
-            fromname: 'Musixverse',
-            from_name: 'Musixverse',
-            dynamic_template_data: {
+            dynamicTemplateData: {
                 bandName: result[0].name,
                 bandUsername: result[0].username,
                 name: _bandMember.name,
@@ -7304,16 +7332,10 @@ Parse.Cloud.define('adminSetArtistVerified', async (request: any) => {
 
             await artist.save(null, { useMasterKey: true });
 
-            await Parse.Cloud.sendEmail({
+            await sendEmail({
                 to: request.params.email,
                 templateId: 'd-1058dab3c15949ce9e4b61683c86ade1',
-                from: {
-                    name: 'Musixverse',
-                },
-                name: 'Musixverse',
-                fromname: 'Musixverse',
-                from_name: 'Musixverse',
-                dynamic_template_data: {
+                dynamicTemplateData: {
                     name: request.params.name,
                     marketplaceLink: `${MUSIXVERSE_ROOT_URL}/mxcatalog/new-releases`,
                 },

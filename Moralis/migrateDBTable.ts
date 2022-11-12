@@ -1,12 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable etc/no-commented-out-code */
 const { MongoClient } = require('mongodb');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
 
 const dbName = 'parse';
-// eslint-disable-next-line etc/no-commented-out-code
 // const collectionName = "_User";
 // const collectionName = "Band";
 // const collectionName = "ArtistVerification";
@@ -20,15 +19,15 @@ const dbName = 'parse';
 // const collectionName = "NFTReports";
 // const collectionName = "TokenCommentUpdated";
 // const collectionName = "TokenCreated";
-// const collectionName = "TokenOnSaleUpdated";
+const collectionName = 'TokenOnSaleUpdated';
 // const collectionName = "TokenPriceUpdated";
 // const collectionName = "TokenPurchased";
 // const collectionName = "TrackMinted";
 // const collectionName = "UserInfo";
 // const collectionName = 'TransferSingle';
-const collectionName = 'UserPreferences';
+// const collectionName = 'UserPreferences';
 
-const newDBName = 'moralis';
+const newDBName = 'musixverse';
 
 const client = new MongoClient(`mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`, {
     useUnifiedTopology: true,

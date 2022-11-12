@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable etc/no-commented-out-code */
 import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
@@ -7,7 +9,7 @@ import { parseServer } from './parseServer';
 // @ts-ignore
 import ParseServer from 'parse-server';
 import http from 'http';
-import { streamsSync } from '@moralisweb3/parse-server';
+import { verifySignature, parseUpdate, parseEventData } from './helpers/utils';
 
 export const app = express();
 
@@ -20,6 +22,7 @@ app.use(express.json());
 
 // Whitelist
 app.use(cors());
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.status(200).send(
@@ -28,16 +31,46 @@ app.get('/', (req, res) => {
             'Musixverse Parse Server is running...</div></body></html>',
     );
 });
+app.get('/favicon.ico', (req, res) => {
+    res.status(200).sendFile(`/public/favicon.ico?v=${Math.trunc(Math.random() * 999)}`);
+});
 
-app.use(
-    streamsSync(parseServer, {
-        apiKey: config.MORALIS_API_KEY,
-        webhookUrl: '/streams',
-    }),
-);
+const save_stream_data = async (req: any, res: any) => {
+    try {
+        verifySignature(req, config.MORALIS_API_KEY);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, eventName }: any = parseEventData(req);
+        if (data && eventName) {
+            await parseUpdate(`${eventName}`, data);
+        }
+        return res.status(200).end();
+    } catch (e) {
+        console.log('Error:', e);
+    }
+    return res.status(502).end();
+};
 
-app.use(`/server`, parseServer.app);
-app.use('/dashboard', parseDashboard);
+app.post('/moralis-streams/token-created', async (req, res) => {
+    return save_stream_data(req, res);
+});
+app.post('/moralis-streams/track-minted', async (req, res) => {
+    return save_stream_data(req, res);
+});
+app.post('/moralis-streams/token-purchased', async (req, res) => {
+    return save_stream_data(req, res);
+});
+app.post('/moralis-streams/token-onsale-updated', async (req, res) => {
+    return save_stream_data(req, res);
+});
+app.post('/moralis-streams/token-price-updated', async (req, res) => {
+    return save_stream_data(req, res);
+});
+app.post('/moralis-streams/token-comment-updated', async (req, res) => {
+    return save_stream_data(req, res);
+});
+
+app.use(`/parse`, parseServer.app);
+app.use('/parse-dashboard', parseDashboard);
 
 const httpServer = http.createServer(app);
 httpServer.listen(config.PORT, () => {

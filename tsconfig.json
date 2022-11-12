@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "target": "es2017",
     "module": "commonjs",
     "outDir": "build",
     "baseUrl": ".",
@@ -8,10 +9,11 @@
     "declaration": true,
     "declarationDir": "build",
     "sourceMap": true,
-    "target": "es2017",
     "esModuleInterop": true,
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx"],
   "exclude": ["node_modules", "build", "dist", "src/**/*.js", "src/**/*.jsx"]

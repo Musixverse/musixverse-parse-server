@@ -7,10 +7,10 @@ export const parseDashboard = new ParseDashboard(
         apps: [
             {
                 appId: config.APPLICATION_ID,
-                masterKey: config.MASTER_KEY,
-                readOnlyMasterKey: config.MASTER_KEY,
-                serverURL: config.SERVER_URL,
                 appName: config.APP_NAME,
+                masterKey: config.MASTER_KEY,
+                readOnlyMasterKey: config.READ_ONLY_MASTER_KEY,
+                serverURL: config.SERVER_URL,
             },
         ],
         users: [
