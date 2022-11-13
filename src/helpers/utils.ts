@@ -19,35 +19,43 @@ export function verifySignature(req: any, secret: string) {
     }
 }
 
-export async function parseUpdate(tableName: string, object: any) {
+export async function parseUpdate(tableName: string, logs: any) {
     // Check if object exists in db
-    const query = new Parse.Query(tableName);
-    query.equalTo('transaction_hash', object.transaction_hash);
-    const result = await query.first({ useMasterKey: true });
-    if (result) {
-        // Loop through object's keys
-        for (const key in object) {
-            result.set(key, object[key]);
+    for (const object of logs) {
+        const query = new Parse.Query(tableName);
+        query.equalTo('transaction_hash', object.transaction_hash);
+        query.equalTo('log_index', object.log_index);
+        // eslint-disable-next-line no-await-in-loop
+        const result = await query.first({ useMasterKey: true });
+        if (result) {
+            // Loop through object's keys
+            for (const key in object) {
+                result.set(key, object[key]);
+            }
+            result?.save(null, { useMasterKey: true });
+        } else {
+            // Create new object
+            const newObject = new Parse.Object(tableName);
+            for (const key in object) {
+                newObject.set(key, object[key]);
+            }
+            newObject.save(null, { useMasterKey: true });
         }
-        return result?.save(null, { useMasterKey: true });
     }
-    // Create new object
-    const newObject = new Parse.Object(tableName);
-    for (const key in object) {
-        newObject.set(key, object[key]);
-    }
-    return newObject.save(null, { useMasterKey: true });
+    return true;
 }
 
 export function parseEventData(req: any) {
     try {
+        const updates = [];
         for (const log of req.body.logs) {
             const { abi } = req.body;
             if (abi) {
                 const { dataToUpdate } = realtimeUpsertParams(abi, log, req.body.confirmed, req.body.block);
-                return { data: dataToUpdate, eventName: req.body.tag };
+                updates.push(dataToUpdate);
             }
         }
+        return { eventName: req.body.tag, data: updates };
     } catch (e: any) {
         console.log(e);
     }

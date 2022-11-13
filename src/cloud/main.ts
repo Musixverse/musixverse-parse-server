@@ -1,3 +1,4 @@
+/* eslint-disable etc/no-commented-out-code */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable complexity */
@@ -5,39 +6,14 @@ declare const Parse: any;
 import './generated/evmApi';
 import './generated/solApi';
 import { requestMessage } from '../auth/authService';
+import config from '../config';
+const Moralis = require('moralis').default;
 const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
-sendgridMail.setApiKey(process.env.SENDGRID_API_KEY);
+sendgridMail.setApiKey(config.SENDGRID_API_KEY);
 
-let NODE_ENV;
-let CHAIN_ID: string;
-let MXV_DIAMOND_ADDRESS: string;
 const IPFS_NODE_URL = 'https://ipfs.moralis.io:2053/ipfs/';
-let MUSIXVERSE_ROOT_URL: string;
-
-async function getConfigVars() {
-    const _config = await Parse.Config.get();
-    const nodeEnv = _config.get('NODE_ENV');
-    NODE_ENV = nodeEnv;
-
-    if (NODE_ENV === 'development') {
-        CHAIN_ID = '0x13881';
-        MXV_DIAMOND_ADDRESS = '0x34B868f2C90bD6E8e94Cc0F0bC72837809D54aDA';
-        MUSIXVERSE_ROOT_URL = 'https://dev-vxm.vercel.app';
-        // @ts-ignore
-        // Mainnet
-        // CHAIN_ID = "0x89";
-        // BLOCKCHAIN_NETWORK = "matic";
-        // MXV_DIAMOND_ADDRESS = "0x6C612D67ACc5F4798E83EA5Da74F1452e2c64F02";
-        // MUSIXVERSE_ROOT_URL = "https://dev-vxm.vercel.app";
-    } else if (NODE_ENV === 'production') {
-        CHAIN_ID = '0x13881';
-        MXV_DIAMOND_ADDRESS = '0x35B8b2c06A0Ee8aeb3d371d0570E95478DdB6B21';
-        MUSIXVERSE_ROOT_URL = 'https://beta.musixverse.com';
-    }
-    return _config;
-}
-getConfigVars();
+const MUSIXVERSE_ROOT_URL = config.MUSIXVERSE_CLIENT_BASE_URL;
 
 Parse.Cloud.define('requestMessage', async ({ params }: any) => {
     const { address, chain, networkType } = params;
@@ -64,6 +40,20 @@ Parse.Cloud.define('getServerTime', () => {
 /**************************************************************************/
 /**************************    User Sign Up   *****************************/
 /**************************************************************************/
+
+Parse.Cloud.define('uploadtoIPFS', async (request: any) => {
+    await Moralis.start({
+        apiKey: config.MORALIS_API_KEY,
+    });
+    const abi = [
+        {
+            path: `${request.params.ethAddress}/${request.params.fileType}`,
+            content: request.params.fileToUpload,
+        },
+    ];
+    const response = await Moralis.EvmApi.ipfs.uploadFolder({ abi });
+    return response.toJSON();
+});
 
 Parse.Cloud.define('checkUsernameAvailability', async (request: any) => {
     if (request.params.username) {
@@ -3656,336 +3646,6 @@ Parse.Cloud.define('requestForVerification', async (request: any) => {
         return artistVerificationInfo;
     }
     return null;
-});
-
-/**************************************************************************/
-/**********************    Watch Contract Events   ************************/
-/**************************************************************************/
-
-Parse.Cloud.define('syncTokenCreated', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TokenCreated(address, uint256, uint256, uint256, uint256)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'creator',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'trackId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'tokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'price',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'localTokenId',
-                    type: 'uint256',
-                },
-            ],
-            name: 'TokenCreated',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TokenCreated',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTrackMinted', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TrackMinted(address, uint256, uint256, uint256, string)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'creator',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'trackId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'maxTokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'price',
-                    type: 'uint256',
-                },
-                {
-                    indexed: true,
-                    internalType: 'string',
-                    name: 'URIHash',
-                    type: 'string',
-                },
-            ],
-            name: 'TrackMinted',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TrackMinted',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTokenPurchased', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TokenPurchased(uint256, address, address, address, uint256)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'tokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'referrer',
-                    type: 'address',
-                },
-                {
-                    indexed: false,
-                    internalType: 'address',
-                    name: 'previousOwner',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'newOwner',
-                    type: 'address',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'price',
-                    type: 'uint256',
-                },
-            ],
-            name: 'TokenPurchased',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TokenPurchased',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTokenPriceUpdated', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TokenPriceUpdated(address, uint256, uint256, uint256)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'caller',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'tokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'oldPrice',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'newPrice',
-                    type: 'uint256',
-                },
-            ],
-            name: 'TokenPriceUpdated',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TokenPriceUpdated',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTokenOnSaleUpdated', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TokenOnSaleUpdated(address, uint256, bool)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'caller',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'tokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'bool',
-                    name: 'onSale',
-                    type: 'bool',
-                },
-            ],
-            name: 'TokenOnSaleUpdated',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TokenOnSaleUpdated',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTransferSingle', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TransferSingle(address, address, address, uint256, uint256)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'operator',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'from',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'to',
-                    type: 'address',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'id',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'uint256',
-                    name: 'value',
-                    type: 'uint256',
-                },
-            ],
-            name: 'TransferSingle',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TransferSingle',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
-});
-
-Parse.Cloud.define('syncTokenCommentUpdated', async () => {
-    const options = {
-        chainId: CHAIN_ID,
-        address: MXV_DIAMOND_ADDRESS,
-        topic: 'TokenCommentUpdated(address, uint256, string, string)',
-        abi: {
-            anonymous: false,
-            inputs: [
-                {
-                    indexed: true,
-                    internalType: 'address',
-                    name: 'caller',
-                    type: 'address',
-                },
-                {
-                    indexed: true,
-                    internalType: 'uint256',
-                    name: 'tokenId',
-                    type: 'uint256',
-                },
-                {
-                    indexed: false,
-                    internalType: 'string',
-                    name: 'previousComment',
-                    type: 'string',
-                },
-                {
-                    indexed: false,
-                    internalType: 'string',
-                    name: 'newComment',
-                    type: 'string',
-                },
-            ],
-            name: 'TokenCommentUpdated',
-            type: 'event',
-        },
-        limit: 50000,
-        tableName: 'TokenCommentUpdated',
-        sync_historical: true,
-    };
-
-    Parse.Cloud.run('watchContractEvent', options, { useMasterKey: true });
 });
 
 /**************************************************************************/

@@ -9,6 +9,7 @@ import { parseServer } from './parseServer';
 // @ts-ignore
 import ParseServer from 'parse-server';
 import http from 'http';
+import bodyParser from 'body-parser';
 import { verifySignature, parseUpdate, parseEventData } from './helpers/utils';
 
 export const app = express();
@@ -17,8 +18,8 @@ Moralis.start({
     apiKey: config.MORALIS_API_KEY,
 });
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ limit: '200mb', extended: true, parameterLimit: 1000000 }));
+app.use(bodyParser.json({ limit: '200mb' }));
 
 // Whitelist
 app.use(cors());
@@ -39,8 +40,8 @@ const save_stream_data = async (req: any, res: any) => {
     try {
         verifySignature(req, config.MORALIS_API_KEY);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, eventName }: any = parseEventData(req);
-        if (data && eventName) {
+        const { eventName, data }: any = parseEventData(req);
+        if (eventName && data) {
             await parseUpdate(`${eventName}`, data);
         }
         return res.status(200).end();
