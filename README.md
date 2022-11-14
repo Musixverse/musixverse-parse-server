@@ -34,3 +34,7 @@ Run `node moralis/migrateDBTable.ts` to migrate the database table specified in 
 Run `npm start` to start server and `npm run watch` in another terminal to auto generate cloud code on main.ts file save
 
 Run `node moralis/streams/addStreams.ts` to add Moralis Streams for smart contract events
+
+
+View the Parse Dashboard here-
+`http://localhost:8080/parse-dashboard`

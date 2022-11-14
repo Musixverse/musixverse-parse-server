@@ -9,7 +9,6 @@ import { parseServer } from './parseServer';
 // @ts-ignore
 import ParseServer from 'parse-server';
 import http from 'http';
-import bodyParser from 'body-parser';
 import { verifySignature, parseUpdate, parseEventData } from './helpers/utils';
 
 export const app = express();
@@ -19,7 +18,7 @@ Moralis.start({
 });
 
 app.use(express.urlencoded({ limit: '200mb', extended: true, parameterLimit: 1000000 }));
-app.use(bodyParser.json({ limit: '200mb' }));
+app.use(express.json({ limit: '200mb' }));
 
 // Whitelist
 app.use(cors());
