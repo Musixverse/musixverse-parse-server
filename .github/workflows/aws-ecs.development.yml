@@ -1,0 +1,109 @@
+# This workflow will build and push a new container image to Amazon ECR,
+# and then will deploy a new task definition to Amazon ECS, when a release is created
+#
+# To use this workflow, you will need to complete the following set-up steps:
+#
+# 1. Create an ECR repository to store your images.
+#    For example: `aws ecr create-repository --repository-name my-ecr-repo --region us-east-2`.
+#    Replace the value of `ECR_REPOSITORY` in the workflow below with your repository's name.
+#    Replace the value of `aws-region` in the workflow below with your repository's region.
+#
+# 2. Create an ECS task definition, an ECS cluster, and an ECS service.
+#    For example, follow the Getting Started guide on the ECS console:
+#      https://us-east-2.console.aws.amazon.com/ecs/home?region=us-east-2#/firstRun
+#    Replace the values for `service` and `cluster` in the workflow below with your service and cluster names.
+#
+# 3. Store your ECS task definition as a JSON file in your repository.
+#    The format should follow the output of `aws ecs register-task-definition --generate-cli-skeleton`.
+#    Replace the value of `task-definition` in the workflow below with your JSON file's name.
+#    Replace the value of `container-name` in the workflow below with the name of the container
+#    in the `containerDefinitions` section of the task definition.
+#
+# 4. Store an IAM user access key in GitHub Actions secrets named `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+#    See the documentation for each action used below for the recommended IAM policies for this IAM user,
+#    and best practices on handling the access key credentials.
+
+on:
+    push:
+        branches:
+            - main
+
+name: Deploy to Amazon ECS
+
+env:
+    AWS_REGION: 'us-east-1' # set this to your preferred AWS region, e.g. us-east-1
+    ECR_REPOSITORY: 'musixverse-parse-server' # set this to your Amazon ECR repository name
+    ECS_CLUSTER: 'Musixverse-parse-server-cluster' # set this to your Amazon ECS cluster name
+    ECS_SERVICE: 'musixverse-parse-server-service' # set this to your Amazon ECS service name
+    ECS_TASK_DEFINITION: '.aws/task-definition.development.json' # set this to the path to your Amazon ECS task definition file, e.g. .aws/task-definition.json
+    CONTAINER_NAME: 'musixverse-parse-server-container' # set this to the name of the container in the containerDefinitions section of your task definition
+
+jobs:
+    deploy:
+        name: Deploy
+        runs-on: ubuntu-latest
+        environment: production
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: ${{ env.AWS_REGION }}
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+
+            - name: Build, tag, and push image to Amazon ECR
+              id: build-image
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+                  IMAGE_TAG: ${{ github.sha }}
+              run: |
+                  # Build a docker container and
+                  # push it to ECR so that it can
+                  # be deployed to ECS.
+                  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+            - name: Prepare task definition
+            - uses: cschleiden/replace-tokens@v1
+              with:
+                  files: 'task-definition.development.json'
+                  tokenPrefix: '{{'
+                  tokenSuffix: '}}'
+              env:
+                  DEV_APPLICATION_ID: ${{ secrets.DEV_APPLICATION_ID }}
+                  DEV_DATABASE_URI: ${{ secrets.DEV_DATABASE_URI }}
+                  DEV_MASTER_KEY: ${{ secrets.DEV_MASTER_KEY }}
+                  DEV_MORALIS_API_KEY: ${{ secrets.DEV_MORALIS_API_KEY }}
+                  DEV_MUSIXVERSE_CLIENT_BASE_URL: ${{ secrets.DEV_MUSIXVERSE_CLIENT_BASE_URL }}
+                  DEV_NODE_ENV: ${{ secrets.DEV_NODE_ENV }}
+                  DEV_READ_ONLY_MASTER_KEY: ${{ secrets.DEV_READ_ONLY_MASTER_KEY }}
+                  DEV_REDIS_CONNECTION_URI: ${{ secrets.DEV_REDIS_CONNECTION_URI }}
+                  DEV_SENDGRID_API_KEY: ${{ secrets.DEV_SENDGRID_API_KEY }}
+                  DEV_SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID: ${{ secrets.DEV_SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID }}
+                  DEV_SERVER_URL: ${{ secrets.DEV_SERVER_URL }}
+
+            - name: Fill in the new image ID in the Amazon ECS task definition
+              id: task-def
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ${{ env.ECS_TASK_DEFINITION }}
+                  container-name: ${{ env.CONTAINER_NAME }}
+                  image: ${{ steps.build-image.outputs.image }}
+
+            - name: Deploy Amazon ECS task definition
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.task-def.outputs.task-definition }}
+                  service: ${{ env.ECS_SERVICE }}
+                  cluster: ${{ env.ECS_CLUSTER }}
+                  wait-for-service-stability: true

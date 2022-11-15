@@ -3,12 +3,13 @@
 import Moralis from 'moralis';
 import express from 'express';
 import cors from 'cors';
-import config from './config';
-import { parseDashboard } from './parseDashboard';
-import { parseServer } from './parseServer';
 // @ts-ignore
 import ParseServer from 'parse-server';
 import http from 'http';
+import bodyParser from 'body-parser';
+import config from './config';
+import { parseDashboard } from './parseDashboard';
+import { parseServer } from './parseServer';
 import { verifySignature, parseUpdate, parseEventData } from './helpers/utils';
 
 export const app = express();
@@ -17,18 +18,18 @@ Moralis.start({
     apiKey: config.MORALIS_API_KEY,
 });
 
-app.use(express.urlencoded({ limit: '200mb', extended: true, parameterLimit: 1000000 }));
-app.use(express.json({ limit: '200mb' }));
-
 // Whitelist
 app.use(cors());
+
+app.use(bodyParser.urlencoded({ extended: true, limit: '200mb', parameterLimit: 1000000000000000 }));
+app.use(bodyParser.json({ limit: '200mb' }));
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.status(200).send(
-        '<html><head><title>Musixverse Parse Server</title></head><body style="font-family: Poppins !important; background-color: black; padding: 0; margin:0;">' +
-            '<div style="display: flex; flex:1; height: 100% ; justify-content: center; align-items: center; min-height: 100vh !important; font-size: 28px !important; color: #5AB510 !important;">' +
-            'Musixverse Parse Server is running...</div></body></html>',
+        `<html><head><title>Musixverse Parse Server</title></head><body style="font-family: Poppins !important; background-color: black; padding: 0; margin:0;">` +
+            `<div style="display: flex; flex:1; height: 100% ; justify-content: center; align-items: center; min-height: 100vh !important; font-size: 28px !important; color: #5AB510 !important;">` +
+            `Musixverse ${config.NODE_ENV} Parse Server is running...</div></body></html>`,
     );
 });
 app.get('/favicon.ico', (req, res) => {

@@ -8,6 +8,10 @@ export default cleanEnv(process.env, {
         desc: 'Default port wher parse-server will run on',
         default: 8080,
     }),
+    NODE_ENV: str({
+        desc: 'Node environment',
+        default: 'development',
+    }),
 
     MORALIS_API_KEY: str({
         desc: 'Moralis API Key, that can be found in the Moralis Dashboard (keep this secret)',
@@ -66,7 +70,7 @@ export default cleanEnv(process.env, {
         default: 'Musixverse',
         devDefault: 'Musixverse Dev',
     }),
-    ALLOW_INSECURE_HTTP: bool({ default: false }),
+    ALLOW_INSECURE_HTTP: bool({ default: true }),
 
     MUSIXVERSE_CLIENT_BASE_URL: str({
         desc: 'Musixverse client base url',
