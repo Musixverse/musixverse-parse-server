@@ -76,7 +76,7 @@ jobs:
       - name: Prepare task definition
         uses: cschleiden/replace-tokens@v1
         with:
-          files: 'task-definition.development.json'
+          files: '.aws/task-definition.development.json'
           tokenPrefix: '{{'
           tokenSuffix: '}}'
         env:
