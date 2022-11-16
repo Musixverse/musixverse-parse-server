@@ -23,5 +23,5 @@ export const parseDashboard = new ParseDashboard(
         useEncryptedPasswords: false,
         trustProxy: 1,
     },
-    { allowInsecureHTTP: config.ALLOW_INSECURE_HTTP },
+    { allowInsecureHTTP: config.ALLOW_INSECURE_HTTP, cookieSessionSecret: config.MASTER_KEY },
 );
