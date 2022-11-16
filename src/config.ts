@@ -13,9 +13,6 @@ export default cleanEnv(process.env, {
         default: 'development',
     }),
 
-    MORALIS_API_KEY: str({
-        desc: 'Moralis API Key, that can be found in the Moralis Dashboard (keep this secret)',
-    }),
     APPLICATION_ID: str({
         desc: 'An id for your app, can be anything you want',
         default: 'APPLICATION_ID',
@@ -34,7 +31,16 @@ export default cleanEnv(process.env, {
         desc: 'Path to your cloud code',
         default: './build/cloud/main.js',
     }),
+    APP_NAME: str({
+        desc: 'App name',
+        default: 'Musixverse',
+        devDefault: 'Musixverse Dev',
+    }),
+    ALLOW_INSECURE_HTTP: bool({ default: true }),
 
+    MORALIS_API_KEY: str({
+        desc: 'Moralis API Key, that can be found in the Moralis Dashboard (keep this secret)',
+    }),
     DATABASE_URI: str({
         desc: 'URI to your MongoDB database',
         devDefault: 'mongodb://localhost:27017',
@@ -58,19 +64,10 @@ export default cleanEnv(process.env, {
 
     SENDGRID_API_KEY: str({
         desc: 'Sendgrid API key',
-        default: 'SENDGRID_API_KEY',
     }),
     SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID: str({
         desc: 'Sendgrid verification email template id',
-        default: 'SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID',
     }),
-
-    APP_NAME: str({
-        desc: 'App name',
-        default: 'Musixverse',
-        devDefault: 'Musixverse Dev',
-    }),
-    ALLOW_INSECURE_HTTP: bool({ default: true }),
 
     MUSIXVERSE_CLIENT_BASE_URL: str({
         desc: 'Musixverse client base url',
