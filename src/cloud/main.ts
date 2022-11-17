@@ -7,7 +7,6 @@ import './generated/evmApi';
 import './generated/solApi';
 import { requestMessage } from '../auth/authService';
 import config from '../config';
-const Moralis = require('moralis').default;
 const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
 sendgridMail.setApiKey(config.SENDGRID_API_KEY);
@@ -41,20 +40,6 @@ Parse.Cloud.define('getServerTime', () => {
 /**************************    User Sign Up   *****************************/
 /**************************************************************************/
 
-Parse.Cloud.define('uploadtoIPFS', async (request: any) => {
-    await Moralis.start({
-        apiKey: config.MORALIS_API_KEY,
-    });
-    const abi = [
-        {
-            path: `${request.params.ethAddress}/${request.params.fileType}`,
-            content: request.params.fileToUpload,
-        },
-    ];
-    const response = await Moralis.EvmApi.ipfs.uploadFolder({ abi });
-    return response.toJSON();
-});
-
 Parse.Cloud.define('checkUsernameAvailability', async (request: any) => {
     if (request.params.username) {
         const query = new Parse.Query('_User', { useMasterKey: true });
@@ -80,49 +65,6 @@ Parse.Cloud.define('checkEmailExists', async (request: any) => {
         return false;
     }
     return null;
-});
-
-// TODO: Implement custom email verified successfully page
-Parse.Cloud.beforeSave('_User', async (request: any) => {
-    const _currentEmail = request.user ? request.user.get('email') : '';
-    const _newEmail = request.object ? request.object.get('email') : '';
-
-    if (_currentEmail !== _newEmail) {
-        // eslint-disable-next-line etc/no-commented-out-code
-        // request.object.set('emailVerified', false);
-    }
-
-    logger.info(`\n\nrequest.user before saving object: ${JSON.stringify(_currentEmail)}`);
-    logger.info(`\n\nrequest.object before saving object: ${JSON.stringify(_newEmail)}`);
-    if (_newEmail) {
-        // eslint-disable-next-line etc/no-commented-out-code
-        // const query = new Parse.Query('InvitedUsers', { useMasterKey: true });
-        // const pipeline = [
-        //     {
-        //         match: {
-        //             invitedUserEmail: request.object.get('email'),
-        //             joined: false,
-        //         },
-        //     },
-        //     {
-        //         lookup: {
-        //             from: '_User',
-        //             localField: 'userId',
-        //             foreignField: '_id',
-        //             as: 'userInfo',
-        //         },
-        //     },
-        //     {
-        //         project: {
-        //             _id: 1,
-        //             invitedUserEmail: 1,
-        //             joined: 1,
-        //             inviterEmail: '$userInfo.email',
-        //         },
-        //     },
-        // ];
-        // const results = await query.aggregate(pipeline);
-    }
 });
 
 /**************************************************************************/
