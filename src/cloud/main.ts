@@ -151,7 +151,15 @@ Parse.Cloud.define('fetchTracksWhoseAllCopiesAreNotSold', async (request: any) =
     if (numberOfCopies) {
         const rangeValues = numberOfCopies.split('-');
         if (rangeValues.length === 1) {
-            filter_conditions.push({ numberOfCopies: numberOfCopies });
+            if (numberOfCopies === '>100') {
+                filter_conditions.push({
+                    $expr: {
+                        $and: [{ $gt: [{ $toInt: '$numberOfCopies' }, { $toInt: '100' }] }],
+                    },
+                });
+            } else {
+                filter_conditions.push({ numberOfCopies: numberOfCopies });
+            }
         } else {
             filter_conditions.push({
                 $expr: {

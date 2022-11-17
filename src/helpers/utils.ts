@@ -76,6 +76,7 @@ export function realtimeUpsertParams(abi: any, eventLog: any, confirmed: any, bl
         eventLog.topic3,
         eventLog.topic4,
         eventLog.topic5,
+        eventLog.topic6,
     ];
     const { data } = eventLog;
 

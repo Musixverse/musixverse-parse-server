@@ -46,10 +46,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -71,7 +71,7 @@ jobs:
           # be deployed to ECS.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "{image}={$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Prepare task definition
         uses: cschleiden/replace-tokens@v1
@@ -88,6 +88,9 @@ jobs:
           DEV_NODE_ENV: ${{ secrets.DEV_NODE_ENV }}
           DEV_READ_ONLY_MASTER_KEY: ${{ secrets.DEV_READ_ONLY_MASTER_KEY }}
           DEV_REDIS_CONNECTION_URI: ${{ secrets.DEV_REDIS_CONNECTION_URI }}
+          DEV_RATE_LIMIT_TTL: ${{ secrets.DEV_RATE_LIMIT_TTL }}
+          DEV_RATE_LIMIT_AUTHENTICATED: ${{ secrets.DEV_RATE_LIMIT_AUTHENTICATED }}
+          DEV_RATE_LIMIT_ANONYMOUS: ${{ secrets.DEV_RATE_LIMIT_ANONYMOUS }}
           DEV_SENDGRID_API_KEY: ${{ secrets.DEV_SENDGRID_API_KEY }}
           DEV_SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID: ${{ secrets.DEV_SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID }}
           DEV_SERVER_URL: ${{ secrets.DEV_SERVER_URL }}
@@ -107,3 +110,4 @@ jobs:
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
+          force-new-deployment: true

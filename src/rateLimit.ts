@@ -3,7 +3,7 @@
 import { RedisCacheAdapter } from 'parse-server';
 import config from './config';
 
-const redisClient = new RedisCacheAdapter({ url: process.env.REDIS_CONNECTION_URI });
+const redisClient = new RedisCacheAdapter({ url: config.REDIS_CONNECTION_URI });
 
 const getRateLimitKeys = (identifier: string) => `ratelimit_${identifier}`;
 
