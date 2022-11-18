@@ -73,4 +73,13 @@ export default cleanEnv(process.env, {
         desc: 'Musixverse client base url',
         default: 'http://localhost:3000',
     }),
+
+    ADMIN_ACCESS_EMAIL: str({
+        desc: 'Admin access email',
+        default: 'admin@musixverse.com',
+    }),
+    ADMIN_ACCESS_PASSWORD: str({
+        desc: 'Admin access password',
+        default: 'admin8mxv8read',
+    }),
 });

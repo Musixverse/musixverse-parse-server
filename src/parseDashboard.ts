@@ -16,8 +16,13 @@ export const parseDashboard = new ParseDashboard(
         users: [
             {
                 user: 'admin@musixverse.com',
-                pass: 'admin',
+                pass: 'admin8mxv8read',
                 readOnly: true,
+            },
+            {
+                user: config.ADMIN_ACCESS_EMAIL,
+                pass: config.ADMIN_ACCESS_PASSWORD,
+                readOnly: false,
             },
         ],
         useEncryptedPasswords: false,

@@ -71,7 +71,7 @@ jobs:
           # be deployed to ECS.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "{image}={$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Prepare task definition
         uses: cschleiden/replace-tokens@v1
@@ -94,6 +94,8 @@ jobs:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID: ${{ secrets.SENDGRID_VERIFICATION_EMAIL_TEMPLATE_ID }}
           SERVER_URL: ${{ secrets.SERVER_URL }}
+          ADMIN_ACCESS_EMAIL: ${{ secrets.ADMIN_ACCESS_EMAIL }}
+          ADMIN_ACCESS_PASSWORD: ${{ secrets.ADMIN_ACCESS_PASSWORD }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def

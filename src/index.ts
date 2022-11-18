@@ -20,8 +20,8 @@ export const app = express();
 // Whitelist
 app.use(cors());
 
-app.use(bodyParser.json({ limit: '500mb' }));
-app.use(bodyParser.urlencoded({ limit: '500mb', extended: true, parameterLimit: 1000000000000000 }));
+app.use(bodyParser.json({ limit: '200mb' }));
+app.use(bodyParser.urlencoded({ limit: '200mb', extended: true, parameterLimit: 1000000000000000 }));
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -109,9 +109,6 @@ app.post('/upload-base64-to-ipfs', async (req, res) => {
 
 const upload = multer();
 app.post('/upload-file-to-ipfs', upload.single('file'), async (req, res) => {
-    console.log(req.body);
-    console.log(req.file);
-
     try {
         const { file } = req;
         if (file) {

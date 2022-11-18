@@ -175,9 +175,33 @@
         },
         {
           "indexed": false,
+          "internalType": "uint256",
+          "name": "referralFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "platformFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "royaltyAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
           "internalType": "address",
           "name": "previousOwner",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "valueToPreviousOwner",
+          "type": "uint256"
         },
         {
           "indexed": true,
@@ -239,8 +263,8 @@
       "type": "event"
     }
   ],
-  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220da8af6f7498f825e6ec7225d1b02b1f63fd2dc577ccfe0b07a46b12d03da05b164736f6c63430008040033",
-  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220da8af6f7498f825e6ec7225d1b02b1f63fd2dc577ccfe0b07a46b12d03da05b164736f6c63430008040033",
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea264697066735822122063c80d8e5bb63ab1d7454e5450bfefaa4df24cbcb4c1df96ac7f73858dd4bd5b64736f6c63430008040033",
+  "deployedBytecode": "0x6080604052600080fdfea264697066735822122063c80d8e5bb63ab1d7454e5450bfefaa4df24cbcb4c1df96ac7f73858dd4bd5b64736f6c63430008040033",
   "linkReferences": {},
   "deployedLinkReferences": {}
 }
