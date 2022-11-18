@@ -14,7 +14,7 @@ export const parseServer = new ParseServer({
     masterKey: config.MASTER_KEY,
     readOnlyMasterKey: config.READ_ONLY_MASTER_KEY,
     databaseURI: config.DATABASE_URI,
-    maxUploadSize: '500mb',
+    maxUploadSize: '1024mb',
     auth: {
         moralisEth: {
             module: MoralisEthAdapter,

@@ -208,9 +208,33 @@ async function TokenPurchasedStream() {
                     },
                     {
                         indexed: false,
+                        internalType: 'uint256',
+                        name: 'referralFee',
+                        type: 'uint256',
+                    },
+                    {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'platformFee',
+                        type: 'uint256',
+                    },
+                    {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'royaltyAmount',
+                        type: 'uint256',
+                    },
+                    {
+                        indexed: false,
                         internalType: 'address',
                         name: 'previousOwner',
                         type: 'address',
+                    },
+                    {
+                        indexed: false,
+                        internalType: 'uint256',
+                        name: 'valueToPreviousOwner',
+                        type: 'uint256',
                     },
                     {
                         indexed: true,
@@ -229,7 +253,7 @@ async function TokenPurchasedStream() {
                 type: 'event',
             },
         ],
-        topic0: ['TokenPurchased(uint256,address,address,address,uint256)'],
+        topic0: ['TokenPurchased(uint256,address,uint256,uint256,uint256,address,uint256,address,uint256)'],
         webhookUrl: `${process.env.MORALIS_STREAMS_WEBHOOK_BASE_URL}/token-purchased`,
         includeContractLogs: true,
         // includeInternalTxs: true,

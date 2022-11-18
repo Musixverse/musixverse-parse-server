@@ -96,6 +96,7 @@ jobs:
           DEV_SERVER_URL: ${{ secrets.DEV_SERVER_URL }}
           DEV_ADMIN_ACCESS_EMAIL: ${{ secrets.DEV_ADMIN_ACCESS_EMAIL }}
           DEV_ADMIN_ACCESS_PASSWORD: ${{ secrets.DEV_ADMIN_ACCESS_PASSWORD }}
+          DEV_PINATA_JWT_SECRET_ACCESS_TOKEN: ${{ secrets.DEV_PINATA_JWT_SECRET_ACCESS_TOKEN }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def

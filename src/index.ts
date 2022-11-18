@@ -9,19 +9,21 @@ import ParseServer from 'parse-server';
 import http from 'http';
 import bodyParser from 'body-parser';
 import multer from 'multer';
+import axios from 'axios';
+import FormData from 'form-data';
+import { Readable } from 'stream';
 import config from './config';
 import { parseDashboard } from './parseDashboard';
 import { parseServer } from './parseServer';
 import { verifySignature, parseUpdate, parseEventData } from './helpers/utils';
-import axios from 'axios';
 
 export const app = express();
 
 // Whitelist
 app.use(cors());
 
-app.use(bodyParser.json({ limit: '200mb' }));
-app.use(bodyParser.urlencoded({ limit: '200mb', extended: true, parameterLimit: 1000000000000000 }));
+app.use(bodyParser.json({ limit: '1024mb' }));
+app.use(bodyParser.urlencoded({ limit: '1024mb', extended: true, parameterLimit: 1000000000000000 }));
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -49,7 +51,7 @@ const save_stream_data = async (req: any, res: any) => {
         }
         return res.status(200).end();
     } catch (e) {
-        console.log('Error:', e);
+        console.error('Error:', e);
     }
     return res.status(502).end();
 };
@@ -76,29 +78,40 @@ app.post('/moralis-streams/token-comment-updated', async (req, res) => {
 app.use(`/parse`, parseServer.app);
 app.use('/parse-dashboard', parseDashboard);
 
-app.post('/upload-base64-to-ipfs', async (req, res) => {
+app.post('/upload-json-to-ipfs', async (req, res) => {
     try {
-        if (req.body.file) {
+        const { file } = req.body;
+        if (file) {
+            const data = JSON.stringify({
+                pinataOptions: {
+                    cidVersion: 1,
+                },
+                pinataMetadata: {
+                    name: req.body.ethAddress,
+                    keyvalues: {
+                        company: 'Musixverse',
+                        version: '1',
+                        ethAddress: req.body.ethAddress,
+                        fileType: req.body.fileType,
+                    },
+                },
+                pinataContent: req.body.file,
+            });
+
             const options = {
-                method: 'POST',
-                url: 'https://deep-index.moralis.io/api/v2/ipfs/uploadFolder',
+                method: 'post',
+                url: 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
                 maxContentLength: Infinity,
                 maxBodyLength: Infinity,
                 headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    'X-API-Key': config.MORALIS_API_KEY,
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.PINATA_JWT_SECRET_ACCESS_TOKEN}`,
                 },
-                data: [
-                    {
-                        path: `${req.body.ethAddress}/${req.body.fileType}`,
-                        content: req.body.file,
-                    },
-                ],
+                data: data,
             };
 
-            const result = await axios.request(options).then((response) => response.data);
-            return res.status(200).json({ ipfsUrl: result[0].path });
+            const result = await axios(options).then((response) => response.data);
+            return res.status(200).json({ ipfsHash: result.IpfsHash });
         }
     } catch (error) {
         console.error(error);
@@ -112,31 +125,34 @@ app.post('/upload-file-to-ipfs', upload.single('file'), async (req, res) => {
     try {
         const { file } = req;
         if (file) {
-            const base64Encoded = file.buffer.toString('base64');
+            const data = new FormData();
+            data.append('file', Readable.from(file.buffer), {
+                filename: `${req.body.ethAddress}/${req.body.fileType}/${file.originalname}`,
+            });
+            data.append('pinataOptions', '{"cidVersion": 1}');
+            data.append(
+                'pinataMetadata',
+                `{"name": "${req.body.ethAddress}", "keyvalues": {"company": "Musixverse", "version": "1", "ethAddress": "${req.body.ethAddress}", "filename": "${file.originalname}", "mimetype": "${file.mimetype}", "size": "${file.size}", "encoding": "${file.encoding}", "fileType": "${req.body.fileType}" }}`,
+            );
+
             const options = {
                 method: 'POST',
-                url: 'https://deep-index.moralis.io/api/v2/ipfs/uploadFolder',
+                url: 'https://api.pinata.cloud/pinning/pinFileToIPFS',
                 maxContentLength: Infinity,
                 maxBodyLength: Infinity,
                 headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    'X-API-Key': config.MORALIS_API_KEY,
+                    Authorization: `Bearer ${process.env.PINATA_JWT_SECRET_ACCESS_TOKEN}`,
+                    ...data.getHeaders(),
                 },
-                data: [
-                    {
-                        path: `${req.body.ethAddress}/${req.body.fileType}.${file.mimetype.split('/').reverse()[0]}`,
-                        content: base64Encoded,
-                    },
-                ],
+                data: data,
             };
 
-            const result = await axios.request(options).then((response) => response.data);
-            return res.status(200).json({ ipfsUrl: result[0].path });
+            const result = await axios(options).then((response) => response.data);
+            return res.status(200).json({ ipfsHash: result.IpfsHash });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'No file found' });
+        return res.status(500).json({ error: error });
     }
     return res.status(500).json({ error: 'No file found' });
 });

@@ -11,7 +11,7 @@ const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
 sendgridMail.setApiKey(config.SENDGRID_API_KEY);
 
-const IPFS_NODE_URL = 'https://ipfs.moralis.io:2053/ipfs/';
+const IPFS_NODE_URL = 'https://gateway.musixverse.com/ipfs/';
 const MUSIXVERSE_ROOT_URL = config.MUSIXVERSE_CLIENT_BASE_URL;
 
 Parse.Cloud.define('requestMessage', async ({ params }: any) => {
