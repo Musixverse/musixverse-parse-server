@@ -7,7 +7,6 @@
 `docker run -p 8080:8080 musixverse-parse-server`
 
 
-
 DON'T CREATE A TABLE DIRECTLY IN THE MONGODB DATABSE. TABLES SHOULD ONLY BE CREATED VIA THE PARSE DASHBOARD OR VIA CLOUD CODE.
 
 Run `node moralis/migrateDBTable.ts` to migrate the database table specified in the file
