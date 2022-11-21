@@ -97,6 +97,7 @@ jobs:
           ADMIN_ACCESS_EMAIL: ${{ secrets.ADMIN_ACCESS_EMAIL }}
           ADMIN_ACCESS_PASSWORD: ${{ secrets.ADMIN_ACCESS_PASSWORD }}
           PINATA_JWT_SECRET_ACCESS_TOKEN: ${{ secrets.PINATA_JWT_SECRET_ACCESS_TOKEN }}
+          NEXT_PUBLIC_REVALIDATE_SECRET: ${{ secrets.NEXT_PUBLIC_REVALIDATE_SECRET }}
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def

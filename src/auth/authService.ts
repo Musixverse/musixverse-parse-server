@@ -11,7 +11,7 @@ const DOMAIN = 'Musixverse';
 // const STATEMENT = 'Please sign this message to authenticate.';
 const STATEMENT = '';
 const URI = 'https://www.musixverse.com';
-const EXPIRATION_TIME = new Date(Date.now() + 1 * 24 * 3600 * 1000).toISOString();
+const EXPIRATION_TIME = new Date(Date.now() + 60 * 60 * 1 * 24 * 3600 * 1000).toISOString();
 const TIMEOUT = 15;
 
 export async function requestMessage({
