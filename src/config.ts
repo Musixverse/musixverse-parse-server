@@ -73,6 +73,10 @@ export default cleanEnv(process.env, {
         desc: 'Musixverse client base url',
         default: 'http://localhost:3000',
     }),
+    NEXT_PUBLIC_REVALIDATE_SECRET: str({
+        desc: 'Secret for revalidating the cache',
+        default: 'NEXT_PUBLIC_REVALIDATE_SECRET',
+    }),
 
     ADMIN_ACCESS_EMAIL: str({
         desc: 'Admin access email',

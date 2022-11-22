@@ -9,6 +9,7 @@ import { requestMessage } from '../auth/authService';
 import config from '../config';
 const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
+const Moralis = require('moralis-v1');
 sendgridMail.setApiKey(config.SENDGRID_API_KEY);
 
 const IPFS_NODE_URL = 'https://gateway.musixverse.com/ipfs/';
@@ -3900,6 +3901,46 @@ const sendEmail = async (req: any) => {
     await sendgridMail.send(msg);
 };
 
+const sendMassEmail = async (req: any) => {
+    const msg = {
+        from: 'Musixverse <no-reply@musixverse.com>',
+        to: req.to,
+        templateId: req.templateId,
+        dynamicTemplateData: req.dynamicTemplateData,
+    };
+    await sendgridMail.sendMultiple(msg);
+};
+
+Parse.Cloud.afterSave('TokenPurchased', async (request: any) => {
+    if (!request.object.get('confirmed')) {
+        let email_addresses = [];
+        if (MUSIXVERSE_ROOT_URL === 'https://musixverse.com') {
+            email_addresses = [
+                'pushpit@musixverse.com',
+                'yuvraj@musixverse.com',
+                'shivam@musixverse.com',
+                'sparsh@musixverse.com',
+                'ayush@musixverse.com',
+                'akshit@musixverse.com',
+                'ashutosh.bhardwaj6@gmail.com',
+                'melvin15may@gmail.com',
+                'dhruv.sondhi@gmail.com',
+            ];
+        } else {
+            email_addresses = ['pushpit.19584@sscbs.du.ac.in', 'pushpit@immunebytes.com', 'thenomadiccoder@gmail.com'];
+        }
+        await sendMassEmail({
+            to: email_addresses,
+            templateId: 'd-128d5df8c7404b3397beea80e065150c',
+            dynamicTemplateData: {
+                tokenId: request.object.get('tokenId'),
+                price: `${Moralis.Units.FromWei(request.object.get('price'))} MATIC`,
+                nftLink: `${MUSIXVERSE_ROOT_URL}/track/polygon/${request.object.get('tokenId')}`,
+            },
+        });
+    }
+});
+
 Parse.Cloud.define('sendInviteEmail', async (request: any) => {
     if (request.user) {
         await sendEmail({
@@ -4090,6 +4131,67 @@ Parse.Cloud.afterSave('TrackMinted', async (request: any) => {
                 trackMinted.set('hasCollaborators', metadata.attributes[7].value);
 
                 await trackMinted.save();
+
+                // Revalidate pages on musixverse-client
+                const artistQuery = new Parse.Query('_User', { useMasterKey: true });
+                artistQuery.equalTo('ethAddress', metadata.artistAddress);
+                const artist = await artistQuery.first({ useMasterKey: true });
+                await fetch(
+                    `${MUSIXVERSE_ROOT_URL}/api/revalidate-mxcatalog?path=/mxcatalog/new-releases&secret=${config.NEXT_PUBLIC_REVALIDATE_SECRET}`,
+                );
+                await fetch(
+                    `${MUSIXVERSE_ROOT_URL}/api/revalidate-profile?path=/profile/${artist.attributes.username}&secret=${config.NEXT_PUBLIC_REVALIDATE_SECRET}`,
+                );
+
+                // Delete draft from the database after NFT is created
+                const draftQuery = new Parse.Query('NFTDrafts');
+                draftQuery.equalTo('userId', artist.id);
+                draftQuery.equalTo('title', metadata.title);
+                draftQuery.equalTo('language', metadata.language);
+                draftQuery.equalTo('description', metadata.description);
+                const draft = await draftQuery.first({ useMasterKey: true });
+                if (draft) {
+                    draft.destroy({ useMasterKey: true }).then(
+                        () => {
+                            logger.info('The draft was deleted successfully.');
+                        },
+                        (error: any) => {
+                            logger.info(error);
+                        },
+                    );
+                }
+
+                // Send email to all users telling that a new track is released
+                const massEmailQuery = new Parse.Query('_User', { useMasterKey: true });
+                const pipeline = [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [{ $ne: ['$email', ''] }],
+                            },
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            emails: { $addToSet: '$email' },
+                        },
+                    },
+                    { $project: { _id: 0, emails: 1 } },
+                ];
+                const result = await massEmailQuery.aggregate(pipeline);
+
+                await sendMassEmail({
+                    to: result[0].emails,
+                    templateId: 'd-4be726c57abe4be4b6de3c5bdb483aae',
+                    dynamicTemplateData: {
+                        name: `${metadata.title} by ${metadata.artist}`,
+                        artistName: metadata.artist,
+                        title: metadata.title,
+                        numberOfCopies: metadata.attributes[0].value,
+                        nftLink: `${MUSIXVERSE_ROOT_URL}/track/polygon/${request.object.get('maxTokenId')}`,
+                    },
+                });
             },
             (httpResponse: any) => {
                 // if error
