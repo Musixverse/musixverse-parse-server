@@ -9,7 +9,7 @@ import { requestMessage } from '../auth/authService';
 import config from '../config';
 const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
-const Moralis = require('moralis').default;
+const Moralis = require('moralis-v1');
 sendgridMail.setApiKey(config.SENDGRID_API_KEY);
 
 const IPFS_NODE_URL = 'https://gateway.musixverse.com/ipfs/';
@@ -3912,6 +3912,7 @@ const sendMassEmail = async (req: any) => {
 };
 
 Parse.Cloud.afterSave('TokenPurchased', async (request: any) => {
+    logger.info(`\n\n\n\n${JSON.stringify(request)}\n\n\n\n`);
     let email_addresses = [];
     if (MUSIXVERSE_ROOT_URL === 'https://musixverse.com') {
         email_addresses = [
@@ -4133,7 +4134,7 @@ Parse.Cloud.afterSave('TrackMinted', async (request: any) => {
                 // Revalidate pages on musixverse-client
                 const artistQuery = new Parse.Query('_User', { useMasterKey: true });
                 artistQuery.equalTo('ethAddress', metadata.artistAddress);
-                const artist = await artistQuery.first();
+                const artist = await artistQuery.first({ useMasterKey: true });
                 await fetch(
                     `${MUSIXVERSE_ROOT_URL}/api/revalidate-mxcatalog?path=/mxcatalog/new-releases&secret=${config.NEXT_PUBLIC_REVALIDATE_SECRET}`,
                 );
