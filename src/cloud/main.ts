@@ -3912,7 +3912,6 @@ const sendMassEmail = async (req: any) => {
 };
 
 Parse.Cloud.afterSave('TokenPurchased', async (request: any) => {
-    logger.info(`\n\n\n\n${JSON.stringify(request)}\n\n\n\n`);
     let email_addresses = [];
     if (MUSIXVERSE_ROOT_URL === 'https://musixverse.com') {
         email_addresses = [
