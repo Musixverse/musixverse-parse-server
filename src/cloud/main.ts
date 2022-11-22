@@ -3912,31 +3912,33 @@ const sendMassEmail = async (req: any) => {
 };
 
 Parse.Cloud.afterSave('TokenPurchased', async (request: any) => {
-    let email_addresses = [];
-    if (MUSIXVERSE_ROOT_URL === 'https://musixverse.com') {
-        email_addresses = [
-            'pushpit@musixverse.com',
-            'yuvraj@musixverse.com',
-            'shivam@musixverse.com',
-            'sparsh@musixverse.com',
-            'ayush@musixverse.com',
-            'akshit@musixverse.com',
-            'ashutosh.bhardwaj6@gmail.com',
-            'melvin15may@gmail.com',
-            'dhruv.sondhi@gmail.com',
-        ];
-    } else {
-        email_addresses = ['pushpit.19584@sscbs.du.ac.in', 'pushpit@immunebytes.com', 'thenomadiccoder@gmail.com'];
+    if (!request.object.get('confirmed')) {
+        let email_addresses = [];
+        if (MUSIXVERSE_ROOT_URL === 'https://musixverse.com') {
+            email_addresses = [
+                'pushpit@musixverse.com',
+                'yuvraj@musixverse.com',
+                'shivam@musixverse.com',
+                'sparsh@musixverse.com',
+                'ayush@musixverse.com',
+                'akshit@musixverse.com',
+                'ashutosh.bhardwaj6@gmail.com',
+                'melvin15may@gmail.com',
+                'dhruv.sondhi@gmail.com',
+            ];
+        } else {
+            email_addresses = ['pushpit.19584@sscbs.du.ac.in', 'pushpit@immunebytes.com', 'thenomadiccoder@gmail.com'];
+        }
+        await sendMassEmail({
+            to: email_addresses,
+            templateId: 'd-128d5df8c7404b3397beea80e065150c',
+            dynamicTemplateData: {
+                tokenId: request.object.get('tokenId'),
+                price: `${Moralis.Units.FromWei(request.object.get('price'))} MATIC`,
+                nftLink: `${MUSIXVERSE_ROOT_URL}/track/polygon/${request.object.get('tokenId')}`,
+            },
+        });
     }
-    await sendMassEmail({
-        to: email_addresses,
-        templateId: 'd-128d5df8c7404b3397beea80e065150c',
-        dynamicTemplateData: {
-            tokenId: request.object.get('tokenId'),
-            price: `${Moralis.Units.FromWei(request.object.get('price'))} MATIC`,
-            nftLink: `${MUSIXVERSE_ROOT_URL}/track/polygon/${request.object.get('tokenId')}`,
-        },
-    });
 });
 
 Parse.Cloud.define('sendInviteEmail', async (request: any) => {
