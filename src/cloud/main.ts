@@ -6932,6 +6932,7 @@ Parse.Cloud.define('adminGetArtistVerificationTableDetails', async () => {
                 updatedAt: 1,
                 userId: 1,
                 isPersonaVerified: 1,
+                personaInquiryId: 1,
                 verificationRequested: 1,
                 artistRealName: 1,
                 name: { $first: '$artistInfo.name' },
@@ -7031,6 +7032,7 @@ Parse.Cloud.define('adminGetArtistVerificationTableDetails', async () => {
                 artistRealName: { $first: '$artistVerificationInfo.artistRealName' },
                 songLink: { $first: '$artistVerificationInfo.songLink' },
                 instagramHandle: { $first: '$artistVerificationInfo.instagramHandle' },
+                personaInquiryId: { $first: '$artistVerificationInfo.personaInquiryId' },
             },
         },
     ];
@@ -7066,6 +7068,44 @@ Parse.Cloud.define('adminSetArtistVerified', async (request: any) => {
             await sendEmail({
                 to: request.params.email,
                 templateId: 'd-1058dab3c15949ce9e4b61683c86ade1',
+                dynamicTemplateData: {
+                    name: request.params.name,
+                    marketplaceLink: `${MUSIXVERSE_ROOT_URL}/mxcatalog/new-releases`,
+                },
+            });
+            return artist;
+        }
+        return null;
+    } catch (error) {
+        return error;
+    }
+});
+
+Parse.Cloud.define('adminRejectArtistVerificationRequest', async (request: any) => {
+    try {
+        const query = new Parse.Query('ArtistVerification');
+        query.equalTo('userId', request.params.userId);
+        const artistVerificationInfo = await query.first({ useMasterKey: true });
+
+        if (artistVerificationInfo) {
+            artistVerificationInfo.destroy({ useMasterKey: true }).then(
+                () => {
+                    logger.info('The artist verification request was rejected successfully.');
+                },
+                (error: any) => {
+                    logger.info(error);
+                },
+            );
+
+            const _query = new Parse.Query('_User', { useMasterKey: true });
+            _query.equalTo('objectId', request.params.userId);
+            const artist = await _query.first({ useMasterKey: true });
+            artist.set('isArtist', false);
+            await artist.save(null, { useMasterKey: true });
+
+            await sendEmail({
+                to: request.params.email,
+                templateId: 'd-536f23549bf5413f8198da3b75389966',
                 dynamicTemplateData: {
                     name: request.params.name,
                     marketplaceLink: `${MUSIXVERSE_ROOT_URL}/mxcatalog/new-releases`,
