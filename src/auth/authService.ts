@@ -9,7 +9,7 @@ export interface RequestMessage {
 const DOMAIN = 'Musixverse';
 // eslint-disable-next-line etc/no-commented-out-code
 // const STATEMENT = 'Please sign this message to authenticate.';
-const STATEMENT = '';
+const STATEMENT = 'Please sign this message to authenticate';
 const URI = 'https://www.musixverse.com';
 const EXPIRATION_TIME = new Date(Date.now() + 60 * 60 * 1 * 24 * 3600 * 1000).toISOString();
 const TIMEOUT = 15;

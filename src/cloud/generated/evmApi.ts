@@ -32,6 +32,7 @@ const beforeApiRequest = async (user: any, ip: any, name: string) => {
         );
     }
 };
+
 Parse.Cloud.define('getBlock', async ({ params, user, ip }: any) => {
     try {
         await beforeApiRequest(user, ip, 'getBlock');
