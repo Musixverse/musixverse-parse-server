@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Moralis from 'moralis';
-import { MoralisError } from '@moralisweb3/core';
+import { MoralisError } from '@moralisweb3/common-core';
 import { handleRateLimit } from '../../rateLimit';
 import { AxiosError } from 'axios';
 declare const Parse: any;
@@ -36,7 +36,7 @@ const beforeApiRequest = async (user: any, ip: any, name: string) => {
 Parse.Cloud.define('sol-balance', async ({ params, user, ip }: any) => {
     try {
         await beforeApiRequest(user, ip, 'balance');
-        const result = await Moralis.SolApi.account.balance(params);
+        const result = await Moralis.SolApi.account.getBalance(params);
         return result?.raw;
     } catch (error) {
         throw new Error(getErrorMessage(error, 'sol-balance'));

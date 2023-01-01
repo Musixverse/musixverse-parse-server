@@ -7145,3 +7145,96 @@ Parse.Cloud.define('adminGetUsers', async () => {
     };
     return result;
 });
+
+Parse.Cloud.define('adminGetNftReports', async () => {
+    const query = new Parse.Query('NFTReports', { useMasterKey: true });
+    const pipeline = [
+        {
+            $lookup: {
+                from: '_User',
+                localField: 'reporter_userId',
+                foreignField: '_id',
+                as: 'reporter',
+            },
+        },
+        {
+            $project: {
+                reporter: { $first: '$reporter' },
+                tokenId: 1,
+                reason: 1,
+                createdAt: 1,
+            },
+        },
+    ];
+    const result = await query.aggregate(pipeline);
+
+    return result;
+});
+
+Parse.Cloud.define('adminGetProfileReports', async () => {
+    const query = new Parse.Query('ProfileReports', { useMasterKey: true });
+    const pipeline = [
+        {
+            $lookup: {
+                from: '_User',
+                localField: 'reporter_userId',
+                foreignField: '_id',
+                as: 'reporter',
+            },
+        },
+        {
+            $lookup: {
+                from: '_User',
+                localField: 'reportedProfile_userId',
+                foreignField: '_id',
+                as: 'reportedProfile',
+            },
+        },
+        {
+            $project: {
+                reporter: { $first: '$reporter' },
+                reportedProfile: { $first: '$reportedProfile' },
+                reason: 1,
+                createdAt: 1,
+            },
+        },
+    ];
+    const result = await query.aggregate(pipeline);
+
+    return result;
+});
+
+Parse.Cloud.define('adminGetContactResults', async () => {
+    const query = new Parse.Query('ContactForm', { useMasterKey: true });
+    const pipeline = [
+        {
+            $project: {
+                subject: 1,
+                message: 1,
+                name: 1,
+                email: 1,
+                createdAt: 1,
+            },
+        },
+    ];
+    const result = await query.aggregate(pipeline);
+
+    return result;
+});
+
+Parse.Cloud.define('adminGetBugReports', async () => {
+    const query = new Parse.Query('BugReports', { useMasterKey: true });
+    const pipeline = [
+        {
+            $project: {
+                bugDescription: 1,
+                name: 1,
+                email: 1,
+                createdAt: 1,
+            },
+        },
+    ];
+    const result = await query.aggregate(pipeline);
+
+    return result;
+});
