@@ -15,6 +15,5 @@ Run `npm run dev` to start server and `npm run watch` in another terminal to aut
 
 Run `node moralis/streams/addStreams.ts` to add Moralis Streams for smart contract events
 
-
 View the Parse Dashboard here-
 `http://localhost:8080/parse-dashboard`
