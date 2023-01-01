@@ -29,7 +29,7 @@ function validateAuthData(authData: any) {
 
         .catch(() => {
             // @ts-ignore (see note at top of file)
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Moralis auth failed, invalid data');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Musixverse auth failed, invalid data');
         });
 }
 
