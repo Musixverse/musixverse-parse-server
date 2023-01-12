@@ -38,11 +38,3 @@ export async function requestMessage({
 
     return message;
 }
-
-export async function validateAuth({ message, signature }: { message: string; signature: string }) {
-    const { address, profileId } = (await Moralis.Auth.verify({ message, signature, network: 'evm' })).raw;
-
-    const user = { address, profileId, signature };
-
-    return user;
-}

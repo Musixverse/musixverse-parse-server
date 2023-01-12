@@ -4,7 +4,6 @@ import ParseServer from 'parse-server';
 import sendGridAdapter from 'parse-server-sendgrid-email-adapter';
 import config from './config';
 import MoralisEthAdapter from './auth/MoralisEthAdapter';
-import MagicEthAdapter from './auth/MagicEthAdapter';
 
 export const parseServer = new ParseServer({
     appName: config.APP_NAME,
@@ -19,9 +18,6 @@ export const parseServer = new ParseServer({
     auth: {
         moralisEth: {
             module: MoralisEthAdapter,
-        },
-        magicAuth: {
-            module: MagicEthAdapter,
         },
     },
     verifyUserEmails: true,

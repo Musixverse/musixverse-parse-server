@@ -5,7 +5,7 @@
 declare const Parse: any;
 import './generated/evmApi';
 import './generated/solApi';
-import { requestMessage, validateAuth } from '../auth/authService';
+import { requestMessage } from '../auth/authService';
 import config from '../config';
 const { logger } = require('parse-server');
 const sendgridMail = require('@sendgrid/mail');
@@ -25,15 +25,6 @@ Parse.Cloud.define('requestMessage', async ({ params }: any) => {
     });
 
     return { message };
-});
-
-Parse.Cloud.define('validateAuth', async (authData: any) => {
-    const { message, signature } = authData.params;
-
-    const user = await validateAuth({ message, signature });
-    // const user = await validateMagicAuthData(authData);
-
-    return user;
 });
 
 Parse.Cloud.define('getPluginSpecs', () => {
