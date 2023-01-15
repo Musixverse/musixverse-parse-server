@@ -58,12 +58,39 @@ Parse.Cloud.define('checkEmailExists', async (request: any) => {
     if (request.params.email) {
         const query = new Parse.Query('_User', { useMasterKey: true });
         query.equalTo('email', request.params.email);
-        query.equalTo('emailVerified', true);
+        // query.equalTo('emailVerified', true);
         const result = await query.first({ useMasterKey: true });
         if (result) {
             return 'An account with this email already exists';
         }
         return false;
+    }
+    return null;
+});
+
+Parse.Cloud.define('checkEmailExistsForMagicLogin', async (request: any) => {
+    if (request.params.email) {
+        const query = new Parse.Query('_User', { useMasterKey: true });
+        query.equalTo('email', request.params.email);
+        const result = await query.first({ useMasterKey: true });
+        if (result) {
+            return 'An account with this email already exists';
+        }
+        return false;
+    }
+    return null;
+});
+
+Parse.Cloud.define('magicAuthSetUserEmail', async (request: any) => {
+    const query = new Parse.Query('_User', { useMasterKey: true });
+    query.equalTo('objectId', request.params.userId);
+    query.equalTo('email', null);
+    const result = await query.first({ useMasterKey: true });
+
+    if (result) {
+        result.set('email', request.params.email);
+        result.set('authMethod', 'magicLink');
+        return result.save(null, { useMasterKey: true });
     }
     return null;
 });
