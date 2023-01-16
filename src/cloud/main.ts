@@ -6839,6 +6839,67 @@ Parse.Cloud.define('fetchAllTokens', async () => {
 /****************************    Search   *********************************/
 /**************************************************************************/
 
+Parse.Cloud.define('performSearch', async (request: any) => {
+    const query = new Parse.Query('_User', { useMasterKey: true });
+    const pipeline = [
+        {
+            match: {
+                username: { $regex: `^${request.params.searchText}` },
+                name: { $ne: null },
+                emailVerified: true,
+            },
+        },
+        {
+            lookup: {
+                from: 'UserInfo',
+                localField: '_id',
+                foreignField: 'userId',
+                as: 'userInfo',
+            },
+        },
+        { limit: 5 },
+        {
+            project: {
+                _id: 1,
+                ethAddress: 1,
+                name: 1,
+                username: 1,
+                isArtist: 1,
+                isArtistVerified: 1,
+                avatar: { $first: '$userInfo.avatar' },
+            },
+        },
+    ];
+    const users = await query.aggregate(pipeline);
+
+    const trackQuery = new Parse.Query('TrackMinted', { useMasterKey: true });
+    const trackPipeline = [
+        {
+            match: {
+                title: { $regex: `^${request.params.searchText}`, $options: '-i' },
+            },
+        },
+        { limit: 5 },
+        {
+            project: {
+                _id: 1,
+                trackId: 1,
+                title: 1,
+                genre: 1,
+                artist: 1,
+                collaborators: 1,
+                maxTokenId: 1,
+                numberOfCopies: 1,
+                artwork: 1,
+                audio: 1,
+            },
+        },
+    ];
+    const tracks = await trackQuery.aggregate(trackPipeline);
+
+    return { users: users, tracks: tracks };
+});
+
 Parse.Cloud.define('fetchMatchingUsers', async (request: any) => {
     const query = new Parse.Query('_User', { useMasterKey: true });
     const pipeline = [
@@ -6846,6 +6907,7 @@ Parse.Cloud.define('fetchMatchingUsers', async (request: any) => {
             match: {
                 username: { $regex: `^${request.params.username}` },
                 name: { $ne: null },
+                emailVerified: true,
             },
         },
         {
