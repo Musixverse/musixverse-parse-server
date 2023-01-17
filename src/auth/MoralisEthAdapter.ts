@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Note: do not import Parse dependency. see https://github.com/parse-community/parse-server/issues/6467
 /* global Parse */
 import Moralis from 'moralis';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function validateAuthData(authData: any) {
     const { signature, data } = authData;
 

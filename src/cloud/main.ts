@@ -58,7 +58,7 @@ Parse.Cloud.define('checkEmailExists', async (request: any) => {
     if (request.params.email) {
         const query = new Parse.Query('_User', { useMasterKey: true });
         query.equalTo('email', request.params.email);
-        query.equalTo('emailVerified', true);
+        // query.equalTo('emailVerified', true);
         const result = await query.first({ useMasterKey: true });
         if (result) {
             return 'An account with this email already exists';
@@ -66,6 +66,182 @@ Parse.Cloud.define('checkEmailExists', async (request: any) => {
         return false;
     }
     return null;
+});
+
+Parse.Cloud.define('checkEmailExistsForMagicLogin', async (request: any) => {
+    if (request.params.email) {
+        const query = new Parse.Query('_User', { useMasterKey: true });
+        query.equalTo('email', request.params.email);
+        const result = await query.first({ useMasterKey: true });
+        if (result) {
+            return 'An account with this email already exists';
+        }
+        return false;
+    }
+    return null;
+});
+
+Parse.Cloud.define('magicAuthSetUserEmail', async (request: any) => {
+    const query = new Parse.Query('_User', { useMasterKey: true });
+    query.equalTo('objectId', request.params.userId);
+    query.equalTo('email', null);
+    const result = await query.first({ useMasterKey: true });
+
+    if (result) {
+        result.set('email', request.params.email);
+        result.set('authMethod', 'magicLink');
+        return result.save(null, { useMasterKey: true });
+    }
+    return null;
+});
+
+/**************************************************************************/
+/****************************    Homepage   *******************************/
+/**************************************************************************/
+
+Parse.Cloud.define('fetchTracksForHeroSection', async () => {
+    const query = new Parse.Query('TrackMinted', { useMasterKey: true });
+    const pipeline = [
+        { limit: 10 },
+        {
+            lookup: {
+                from: 'TokenCreated',
+                localField: 'trackId',
+                foreignField: 'trackId',
+                as: 'similarTokens',
+            },
+        },
+        {
+            lookup: {
+                from: 'TokenPurchased',
+                let: { similarTokens: '$similarTokens' },
+                pipeline: [
+                    { $match: { $expr: { $in: ['$tokenId', '$$similarTokens.tokenId'] } } },
+                    { $sort: { price: -1 } },
+                    { $sort: { block_timestamp: -1 } },
+                    {
+                        $group: {
+                            _id: '$tokenId',
+                            tokenId: { $first: '$tokenId' },
+                            block_timestamp: { $first: '$block_timestamp' },
+                        },
+                    },
+                ],
+                as: 'purchasedTokens',
+            },
+        },
+        {
+            lookup: {
+                from: 'TokenPriceUpdated',
+                let: { purchasedTokens: '$purchasedTokens' },
+                pipeline: [
+                    { $match: { $expr: { $in: ['$tokenId', '$$purchasedTokens.tokenId'] } } },
+                    { $sort: { block_timestamp: -1 } },
+                    { $group: { _id: '$tokenId', tokenId: { $first: '$tokenId' }, price: { $first: '$newPrice' } } },
+                    { $sort: { price: 1 } },
+                ],
+                as: 'tokensPriceUpdated',
+            },
+        },
+        {
+            addFields: { purchasedTokens_size: { $size: '$purchasedTokens' } },
+        },
+        {
+            lookup: {
+                from: '_User',
+                localField: 'artistAddress',
+                foreignField: 'ethAddress',
+                as: 'artistUser',
+            },
+        },
+        {
+            addFields: {
+                tokenIdHavingLowestPrice: {
+                    $ifNull: [
+                        {
+                            $first: '$tokensPriceUpdated.tokenId',
+                        },
+                        {
+                            $first: '$purchasedTokens.tokenId',
+                        },
+                    ],
+                },
+            },
+        },
+        {
+            lookup: {
+                from: 'TokenCreated',
+                let: { trackId: '$trackId', tokenIdHavingLowestPrice: '$tokenIdHavingLowestPrice' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$trackId', '$$trackId'] },
+                                    { $eq: ['$tokenId', '$$tokenIdHavingLowestPrice'] },
+                                ],
+                            },
+                        },
+                    },
+                ],
+                as: 'currentToken',
+            },
+        },
+        {
+            lookup: {
+                from: '_User',
+                let: { collaborators: '$collaborators' },
+                pipeline: [
+                    { $match: { $expr: { $in: ['$ethAddress', '$$collaborators.address'] } } },
+                    {
+                        $lookup: {
+                            from: 'UserInfo',
+                            localField: '_id',
+                            foreignField: 'userId',
+                            as: 'userInfo',
+                        },
+                    },
+                    {
+                        $project: {
+                            _id: 0,
+                            name: 1,
+                            username: 1,
+                            ethAddress: 1,
+                            avatar: { $first: '$userInfo.avatar' },
+                        },
+                    },
+                ],
+                as: 'collaboratorUsers',
+            },
+        },
+        {
+            project: {
+                trackId: 1,
+                maxTokenId: 1,
+                localTokenId: { $first: '$currentToken.localTokenId' },
+                tokenIdHavingLowestPrice: 1,
+                price: {
+                    $ifNull: [
+                        {
+                            $first: '$tokensPriceUpdated.price',
+                        },
+                        '$price',
+                    ],
+                },
+                title: 1,
+                artist: 1,
+                artistAddress: 1,
+                isArtistVerified: { $first: '$artistUser.isArtistVerified' },
+                artwork: 1,
+                audio: 1,
+                numberOfCopies: 1,
+                collaborators: 1,
+                collaboratorUsers: 1,
+                unlockTimestamp: 1,
+            },
+        },
+    ];
+    return query.aggregate(pipeline);
 });
 
 /**************************************************************************/
@@ -6812,6 +6988,67 @@ Parse.Cloud.define('fetchAllTokens', async () => {
 /****************************    Search   *********************************/
 /**************************************************************************/
 
+Parse.Cloud.define('performSearch', async (request: any) => {
+    const query = new Parse.Query('_User', { useMasterKey: true });
+    const pipeline = [
+        {
+            match: {
+                username: { $regex: `^${request.params.searchText}` },
+                name: { $ne: null },
+                emailVerified: true,
+            },
+        },
+        {
+            lookup: {
+                from: 'UserInfo',
+                localField: '_id',
+                foreignField: 'userId',
+                as: 'userInfo',
+            },
+        },
+        { limit: 5 },
+        {
+            project: {
+                _id: 1,
+                ethAddress: 1,
+                name: 1,
+                username: 1,
+                isArtist: 1,
+                isArtistVerified: 1,
+                avatar: { $first: '$userInfo.avatar' },
+            },
+        },
+    ];
+    const users = await query.aggregate(pipeline);
+
+    const trackQuery = new Parse.Query('TrackMinted', { useMasterKey: true });
+    const trackPipeline = [
+        {
+            match: {
+                title: { $regex: `^${request.params.searchText}`, $options: '-i' },
+            },
+        },
+        { limit: 5 },
+        {
+            project: {
+                _id: 1,
+                trackId: 1,
+                title: 1,
+                genre: 1,
+                artist: 1,
+                collaborators: 1,
+                maxTokenId: 1,
+                numberOfCopies: 1,
+                artwork: 1,
+                audio: 1,
+            },
+        },
+    ];
+    const tracks = await trackQuery.aggregate(trackPipeline);
+
+    return { users: users, tracks: tracks };
+});
+
 Parse.Cloud.define('fetchMatchingUsers', async (request: any) => {
     const query = new Parse.Query('_User', { useMasterKey: true });
     const pipeline = [
@@ -6819,6 +7056,7 @@ Parse.Cloud.define('fetchMatchingUsers', async (request: any) => {
             match: {
                 username: { $regex: `^${request.params.username}` },
                 name: { $ne: null },
+                emailVerified: true,
             },
         },
         {
