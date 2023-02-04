@@ -191,12 +191,11 @@ app.post('/extract-asset', async (req, res) => {
 
         res.setHeader('Content-Type', 'image/png');
         res.statusCode = 200;
-        res.json({ buffer: `data:image/png;base64,${pngBuffer.toString('base64')}` });
+        return res.json({ buffer: `data:image/png;base64,${pngBuffer.toString('base64')}` });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'A problem occurred' });
     }
-    return res.status(500).json({ error: 'A problem occurred' });
 });
 
 const httpServer = http.createServer(app);
