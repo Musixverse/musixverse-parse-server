@@ -245,6 +245,88 @@ Parse.Cloud.define('fetchTracksForHeroSection', async () => {
 });
 
 /**************************************************************************/
+/************************    Discover Artists   ***************************/
+/**************************************************************************/
+
+Parse.Cloud.define('getAllVerifiedArtists', async () => {
+    const query = new Parse.Query('_User', { useMasterKey: true });
+    const pipeline = [
+        {
+            match: {
+                isArtist: true,
+                isArtistVerified: true,
+            },
+        },
+        {
+            lookup: {
+                from: 'UserInfo',
+                localField: '_id',
+                foreignField: 'userId',
+                as: 'userInfo',
+            },
+        },
+        {
+            lookup: {
+                from: 'TrackMinted',
+                let: { ethAddress: '$ethAddress' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $in: ['$$ethAddress', '$collaborators.address'] },
+                        },
+                    },
+                    {
+                        $count: 'numberOfTracks',
+                    },
+                    {
+                        $project: {
+                            numberOfTracks: 1,
+                        },
+                    },
+                ],
+                as: 'tracksMinted',
+            },
+        },
+        {
+            lookup: {
+                from: 'Followers',
+                let: { userId: '$_id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$following_userId', '$$userId'] },
+                        },
+                    },
+                    {
+                        $count: 'numberOfFollowers',
+                    },
+                    {
+                        $project: {
+                            numberOfFollowers: 1,
+                        },
+                    },
+                ],
+                as: 'followers',
+            },
+        },
+        {
+            project: {
+                name: 1,
+                username: 1,
+                isArtistVerified: 1,
+                avatar: { $first: '$userInfo.avatar' },
+                numberOfTracksByArtist: { $first: '$tracksMinted.numberOfTracks' },
+                numberOfFollowers: { $first: '$followers.numberOfFollowers' },
+            },
+        },
+        { sort: { numberOfTracksByArtist: -1 } },
+    ];
+
+    const result = await query.aggregate(pipeline);
+    return result;
+});
+
+/**************************************************************************/
 /***************************    Mx Catalog   ******************************/
 /**************************************************************************/
 
